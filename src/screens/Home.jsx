@@ -3,6 +3,7 @@ import { SCENARIOS, scenarioCount } from '../data/scenarios.js'
 import { todayParts } from '../lib/format.js'
 import { describeWeather, fetchCurrentWeather, readWeatherCache, requestPosition, writeWeatherCache } from '../lib/weather.js'
 import { APP_DOWNLOAD_URL } from '../lib/config.js'
+import { isAppShell } from '../lib/entitlement.js'
 import Icon from '../components/Icons.jsx'
 
 const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000
@@ -95,16 +96,14 @@ export default function Home({ lists, onOpen, onAbout }) {
       </div>
 
       <footer className="home-foot">
-        {APP_DOWNLOAD_URL ? (
-          <a className="home-link" href={APP_DOWNLOAD_URL} target="_blank" rel="noreferrer">
-            下载 App
-          </a>
-        ) : (
-          <button className="home-link" onClick={onAbout}>
-            下载 App
-          </button>
+        {!isAppShell() && APP_DOWNLOAD_URL && (
+          <>
+            <a className="home-link" href={APP_DOWNLOAD_URL} rel="noreferrer">
+              下载 App
+            </a>
+            <span className="home-dot">·</span>
+          </>
         )}
-        <span className="home-dot">·</span>
         <button className="home-link" onClick={onAbout}>
           关于
         </button>

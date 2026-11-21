@@ -57,28 +57,30 @@ export default function About({ license, onBack, onPurchase }) {
         {!license.app && <p className="fee-note">网页版无需购买，收藏后随时打开即可。</p>}
       </section>
 
-      <section className="panel">
-        <h2 className="panel-title">下载</h2>
-        {APP_DOWNLOAD_URL ? (
-          <>
-            <a className="link-btn" href={APP_DOWNLOAD_URL} target="_blank" rel="noreferrer">
-              下载安卓 App（APK）
-            </a>
-            <div className="download-qr-card">
-              <img className="download-qr" src="./download-qr.png" alt="下载 App 二维码" />
-              <div className="download-qr-text">
-                <strong>微信扫码下载安装</strong>
-                <span>扫码后点右上角「在浏览器打开」再下载</span>
+      {!license.app && (
+        <section className="panel">
+          <h2 className="panel-title">下载</h2>
+          {APP_DOWNLOAD_URL ? (
+            <>
+              <a className="link-btn" href={APP_DOWNLOAD_URL} rel="noreferrer">
+                下载安卓 App（APK）
+              </a>
+              <div className="download-qr-card">
+                <img className="download-qr" src="./download-qr.png" alt="下载 App 二维码" />
+                <div className="download-qr-text">
+                  <strong>微信扫码下载安装</strong>
+                  <span>扫码后点右上角「在浏览器打开」再下载</span>
+                </div>
               </div>
-            </div>
-            <p className="fee-note">
-              电脑或手机浏览器直接点上面按钮也能下载。安装包约 4MB，安装时如提示「未知来源」，允许安装即可。
-            </p>
-          </>
-        ) : (
-          <p className="panel-text">App 正在准备上架，暂时可以先用网页版，功能一样，完全免费。</p>
-        )}
-      </section>
+              <p className="fee-note">
+                电脑或手机浏览器直接点上面按钮也能下载。安装包约 4MB，安装时如提示「未知来源」，允许安装即可。
+              </p>
+            </>
+          ) : (
+            <p className="panel-text">App 正在准备上架，暂时可以先用网页版，功能一样，完全免费。</p>
+          )}
+        </section>
+      )}
     </div>
   )
 }
