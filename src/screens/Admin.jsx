@@ -2,8 +2,10 @@ import { useCallback, useEffect, useState } from 'react'
 import Icon from '../components/Icons.jsx'
 import { GITHUB_REPO } from '../lib/config.js'
 import { addLicense, getToken, loadLicenses, normalizeCode, saveToken } from '../lib/admin.js'
+import { isAdmin } from '../lib/entitlement.js'
 
 export default function Admin({ onBack }) {
+  const admin = isAdmin()
   const [token, setToken] = useState(getToken())
   const [ready, setReady] = useState(Boolean(getToken()))
   const [codes, setCodes] = useState([])
@@ -28,8 +30,8 @@ export default function Admin({ onBack }) {
   }, [])
 
   useEffect(() => {
-    if (ready) refresh()
-  }, [ready, refresh])
+    if (ready && admin) refresh()
+  }, [ready, admin, refresh])
 
   function save() {
     const value = token.trim()
@@ -65,6 +67,22 @@ export default function Admin({ onBack }) {
     } finally {
       setBusy(false)
     }
+  }
+
+  if (!admin) {
+    return (
+      <div className="screen admin-screen">
+        <header className="topbar">
+          <button className="icon-btn" onClick={onBack} aria-label="返回">
+            <Icon name="back" size={20} />
+          </button>
+          <div className="topbar-title">管理员</div>
+        </header>
+        <section className="panel">
+          <p className="panel-text">这台设备不是作者设备，无法进入管理员面板。</p>
+        </section>
+      </div>
+    )
   }
 
   return (

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
-import { licenseStatus, markPurchased, verifyFromRepo } from './lib/entitlement.js'
+import { licenseStatus, markPurchased, verifyFromRepo, isAdmin } from './lib/entitlement.js'
 import Home from './screens/Home.jsx'
 import ItemList from './screens/ItemList.jsx'
 import About from './screens/About.jsx'
@@ -45,7 +45,9 @@ export default function App() {
   }, [])
 
   function applyRoute(route) {
-    const next = route || {}
+    let next = route || {}
+    // 管理员页只对作者设备开放，其他设备即使拿到路由也进不去
+    if (next.admin && !isAdmin()) next = { ...next, admin: false }
     routeRef.current = next
     setOpenId(next.scenario || null)
     setAboutOpen(Boolean(next.about))
@@ -179,7 +181,7 @@ export default function App() {
     )
   }
 
-  if (adminOpen) {
+  if (adminOpen && license.admin) {
     return <Admin onBack={goHome} />
   }
 

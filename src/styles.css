@@ -916,17 +916,6 @@ p {
   color: var(--muted);
 }
 
-.device-send {
-  width: 100%;
-  height: 42px;
-  margin-top: 10px;
-  border-radius: 12px;
-  background: #07c160;
-  color: #fff;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
 /* ---------- 管理员面板 ---------- */
 .admin-input {
   width: 100%;
