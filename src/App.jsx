@@ -1,13 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
-import { licenseStatus, markPurchased, verifyFromRepo, isAdmin } from './lib/entitlement.js'
+import {
+  licenseStatus,
+  markPurchased,
+  verifyFromRepo,
+  isAdmin,
+  isAppShell
+} from './lib/entitlement.js'
 import Home from './screens/Home.jsx'
 import ItemList from './screens/ItemList.jsx'
 import About from './screens/About.jsx'
 import Admin from './screens/Admin.jsx'
 import Lock from './screens/Lock.jsx'
 import Pay from './screens/Pay.jsx'
+
+// 网页版才用浏览器历史；App 里完全靠页面栈，避免原生返回键和 history 抢着回退
+const useHistory = !isAppShell()
 
 export default function App() {
   const [db, setDb] = useState(loadDb)
@@ -58,7 +67,7 @@ export default function App() {
 
   function navigate(route) {
     stackRef.current = [...stackRef.current, route]
-    window.history.pushState(route, '')
+    if (useHistory) window.history.pushState(route, '')
     applyRoute(route)
   }
 
@@ -74,15 +83,18 @@ export default function App() {
   // 返回上一级：有上一页就退一页；已经在主界面返回 false
   function goBack() {
     if (!stackRef.current.length) return false
-    // 自己触发的回退会多来一次 popstate，用计数抵消，避免连退两级
-    skipPopRef.current += 1
-    window.history.back()
+    if (useHistory) {
+      // 自己触发的回退会多来一次 popstate，用计数抵消，避免连退两级
+      skipPopRef.current += 1
+      window.history.back()
+    }
     popStack()
     return true
   }
 
   // 网页版的浏览器返回键：同样只退一级
   useEffect(() => {
+    if (!useHistory) return
     function onPop() {
       if (skipPopRef.current > 0) {
         skipPopRef.current -= 1
@@ -162,7 +174,7 @@ export default function App() {
     if (lockedId) {
       const stack = stackRef.current
       stackRef.current = [...stack.slice(0, -1), { scenario: lockedId }]
-      window.history.replaceState({ scenario: lockedId }, '')
+      if (useHistory) window.history.replaceState({ scenario: lockedId }, '')
       applyRoute({ scenario: lockedId })
     } else {
       goBack()

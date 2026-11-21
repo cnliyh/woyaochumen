@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.6'
+export const APP_VERSION = '1.0.7'
 
 // 安装包直链：放在 GitHub Pages 上，国内一般不用 VPN 就能下载
 export const APP_DOWNLOAD_URL = 'https://cnliyh.github.io/woyaochumen/woyaochumen.apk'
