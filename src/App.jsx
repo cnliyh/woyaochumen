@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
 import { licenseStatus, markPurchased } from './lib/entitlement.js'
@@ -31,6 +31,34 @@ export default function App() {
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  // App 壳内接管系统返回键，避免直接退出
+  const screenRef = useRef({})
+  screenRef.current = { openId, aboutOpen, lockedId, payOpen }
+
+  useEffect(() => {
+    if (!window.Capacitor?.isNativePlatform?.()) return
+    let remove
+    let cancelled = false
+    import('@capacitor/app').then(({ App: NativeApp }) => {
+      if (cancelled) return
+      NativeApp.addListener('backButton', ({ canGoBack }) => {
+        const screen = screenRef.current
+        if (screen.payOpen) return setPayOpen(false)
+        if (screen.lockedId) return setLockedId(null)
+        if (screen.aboutOpen) return setAboutOpen(false)
+        if (screen.openId) return window.history.back()
+        if (canGoBack) return window.history.back()
+        NativeApp.exitApp()
+      }).then((handle) => {
+        remove = () => handle.remove()
+      })
+    })
+    return () => {
+      cancelled = true
+      if (remove) remove()
+    }
   }, [])
 
   function addItem(scenarioId, groupId, name) {
