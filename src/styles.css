@@ -734,3 +734,69 @@ p {
   font-size: 15px;
 }
 
+.sheet-primary {
+  width: 100%;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ---------- 扫码购买 ---------- */
+.pay-head {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.pay-price {
+  font-size: 44px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--brand-deep);
+}
+
+.pay-sub {
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.pay-qr-card {
+  margin-top: 18px;
+  padding: 18px 18px 14px;
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow: var(--shadow-soft);
+  text-align: center;
+}
+
+.pay-qr {
+  display: block;
+  width: 68%;
+  max-width: 260px;
+  margin: 0 auto;
+  border-radius: 14px;
+}
+
+.pay-qr-tip {
+  margin-top: 10px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.pay-steps {
+  margin: 18px 4px 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--ink-2);
+}
+
+.pay-screen .buy-btn {
+  height: 50px;
+  margin-top: 20px;
+}
+
+

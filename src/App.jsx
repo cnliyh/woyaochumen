@@ -6,6 +6,7 @@ import Home from './screens/Home.jsx'
 import ItemList from './screens/ItemList.jsx'
 import About from './screens/About.jsx'
 import Lock from './screens/Lock.jsx'
+import Pay from './screens/Pay.jsx'
 
 export default function App() {
   const [db, setDb] = useState(loadDb)
@@ -13,6 +14,7 @@ export default function App() {
   const [openId, setOpenId] = useState(null)
   const [aboutOpen, setAboutOpen] = useState(false)
   const [lockedId, setLockedId] = useState(null)
+  const [payOpen, setPayOpen] = useState(false)
 
   useEffect(() => {
     saveDb(db)
@@ -20,7 +22,7 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [openId, aboutOpen, lockedId])
+  }, [openId, aboutOpen, lockedId, payOpen])
 
   // 安卓返回键：清单页回到首页，而不是退出应用
   useEffect(() => {
@@ -74,8 +76,9 @@ export default function App() {
   }
 
   function buy() {
-    markPurchased()
+    markPurchased('qr')
     setLicense(licenseStatus())
+    setPayOpen(false)
     if (lockedId) {
       window.history.pushState({ scenario: lockedId }, '')
       setOpenId(lockedId)
@@ -84,6 +87,10 @@ export default function App() {
   }
 
   const scenario = openId ? getScenario(openId) : null
+
+  if (payOpen) {
+    return <Pay onBack={() => setPayOpen(false)} onPaid={buy} />
+  }
 
   if (scenario) {
     return (
@@ -103,10 +110,7 @@ export default function App() {
       <About
         license={license}
         onBack={() => setAboutOpen(false)}
-        onPurchase={() => {
-          buy()
-          setAboutOpen(false)
-        }}
+        onPurchase={() => setPayOpen(true)}
       />
     )
   }
@@ -116,7 +120,7 @@ export default function App() {
       <Lock
         scenarioName={getScenario(lockedId)?.name || '清单'}
         onBack={() => setLockedId(null)}
-        onPurchase={buy}
+        onPurchase={() => setPayOpen(true)}
       />
     )
   }

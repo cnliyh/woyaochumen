@@ -46,7 +46,7 @@ export function licenseStatus() {
   }
 }
 
-// 占位实现：接入 App 内购（App Store / 应用市场）后在这里回调成功再写入
-export function markPurchased() {
-  write({ ...ensureLicense(), purchased: true })
+// 扫码支付的本地记录。真正校验收款需要商户号 + 服务端回调，此处先按诚信解锁。
+export function markPurchased(method = 'qr') {
+  write({ ...ensureLicense(), purchased: true, purchasedAt: new Date().toISOString(), method })
 }
