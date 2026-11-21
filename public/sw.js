@@ -1,5 +1,5 @@
-const CACHE = 'woyaochumen-v3'
-const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg']
+const CACHE = 'woyaochumen-v4'
+const SHELL = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(SHELL)))

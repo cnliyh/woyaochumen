@@ -5,6 +5,9 @@ import { describeWeather, fetchCurrentWeather, readWeatherCache, requestPosition
 import { APP_DOWNLOAD_URL } from '../lib/config.js'
 import Icon from '../components/Icons.jsx'
 
+const AUTO_REFRESH_MS = 6 * 60 * 60 * 1000
+const ASK_KEY = 'woyaochumen.geoAsk.v1'
+
 export default function Home({ lists, onOpen, onAbout }) {
   const [weather, setWeather] = useState(readWeatherCache)
   const [loading, setLoading] = useState(false)
@@ -13,6 +16,7 @@ export default function Home({ lists, onOpen, onAbout }) {
   async function loadWeather() {
     setLoading(true)
     try {
+      localStorage.setItem(ASK_KEY, String(Date.now()))
       const position = await requestPosition()
       const next = await fetchCurrentWeather(position.latitude, position.longitude)
       setWeather(next)
@@ -25,7 +29,21 @@ export default function Home({ lists, onOpen, onAbout }) {
   }
 
   useEffect(() => {
-    loadWeather()
+    const now = Date.now()
+    const lastAsk = Number(localStorage.getItem(ASK_KEY) || 0)
+    const savedAt = weather?.savedAt || 0
+    if (now - savedAt <= AUTO_REFRESH_MS) return
+    if (now - lastAsk < 24 * 60 * 60 * 1000) return
+    if (navigator.permissions?.query) {
+      navigator.permissions
+        .query({ name: 'geolocation' })
+        .then((state) => {
+          if (state.state !== 'denied') loadWeather()
+        })
+        .catch(() => loadWeather())
+    } else {
+      loadWeather()
+    }
   }, [])
 
   const info = weather ? describeWeather(weather.code) : null

@@ -22,6 +22,15 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [openId, aboutOpen, lockedId])
 
+  // 安卓返回键：清单页回到首页，而不是退出应用
+  useEffect(() => {
+    function onPop() {
+      setOpenId(null)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
   function addItem(scenarioId, groupId, name) {
     const value = name.trim()
     if (!value) return
@@ -56,14 +65,19 @@ export default function App() {
   }
 
   function openScenario(id) {
-    if (license.locked) setLockedId(id)
-    else setOpenId(id)
+    if (license.locked) {
+      setLockedId(id)
+      return
+    }
+    window.history.pushState({ scenario: id }, '')
+    setOpenId(id)
   }
 
   function buy() {
     markPurchased()
     setLicense(licenseStatus())
     if (lockedId) {
+      window.history.pushState({ scenario: lockedId }, '')
       setOpenId(lockedId)
       setLockedId(null)
     }
@@ -77,7 +91,7 @@ export default function App() {
         key={scenario.id}
         scenario={scenario}
         lists={db.lists[scenario.id] || {}}
-        onBack={() => setOpenId(null)}
+        onBack={() => window.history.back()}
         onAdd={(groupId, name) => addItem(scenario.id, groupId, name)}
         onRemove={(groupId, name) => removeItem(scenario.id, groupId, name)}
       />
