@@ -25,6 +25,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Copy APK for direct download
+        run: cp release/woyaochumen.apk dist/woyaochumen.apk
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

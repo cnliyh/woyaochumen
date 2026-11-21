@@ -1,4 +1,10 @@
-import { APP_DOWNLOAD_URL, APP_VERSION, PRICE, TRIAL_DAYS } from '../lib/config.js'
+import {
+  APP_DOWNLOAD_BACKUP,
+  APP_DOWNLOAD_URL,
+  APP_VERSION,
+  PRICE,
+  TRIAL_DAYS
+} from '../lib/config.js'
 import Icon from '../components/Icons.jsx'
 
 export default function About({ license, onBack, onPurchase, onAdmin }) {
@@ -65,16 +71,19 @@ export default function About({ license, onBack, onPurchase, onAdmin }) {
               <a className="link-btn" href={APP_DOWNLOAD_URL} rel="noreferrer">
                 下载安卓 App（APK）
               </a>
+              <p className="fee-note">
+                直连下载，国内网络不用 VPN。安装包约 5MB，提示「未知来源」时允许安装即可。
+              </p>
+              <a className="inline-link" href={APP_DOWNLOAD_BACKUP} rel="noreferrer">
+                下载慢？换备用线路
+              </a>
               <div className="download-qr-card">
                 <img className="download-qr" src="./download-qr.png" alt="下载 App 二维码" />
                 <div className="download-qr-text">
-                  <strong>微信扫码下载安装</strong>
-                  <span>扫码后点右上角「在浏览器打开」再下载</span>
+                  <strong>扫码下载安装</strong>
+                  <span>微信扫码后点右上角「在浏览器打开」再下载</span>
                 </div>
               </div>
-              <p className="fee-note">
-                电脑或手机浏览器直接点上面按钮也能下载。安装包约 4MB，安装时如提示「未知来源」，允许安装即可。
-              </p>
             </>
           ) : (
             <p className="panel-text">App 正在准备上架，暂时可以先用网页版，功能一样，完全免费。</p>

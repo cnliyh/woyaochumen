@@ -18,6 +18,7 @@ export default function App() {
   const [lockedId, setLockedId] = useState(null)
   const [payOpen, setPayOpen] = useState(false)
   const stackRef = useRef([])
+  const skipPopRef = useRef(0)
 
   useEffect(() => {
     saveDb(db)
@@ -57,11 +58,11 @@ export default function App() {
 
   function navigate(route) {
     stackRef.current = [...stackRef.current, route]
+    window.history.pushState(route, '')
     applyRoute(route)
   }
 
-  // 返回上一级：有上一页就退一页；已经在主界面返回 false
-  function goBack() {
+  function popStack() {
     const stack = stackRef.current
     if (!stack.length) return false
     const nextStack = stack.slice(0, -1)
@@ -69,6 +70,29 @@ export default function App() {
     applyRoute(nextStack[nextStack.length - 1] || {})
     return true
   }
+
+  // 返回上一级：有上一页就退一页；已经在主界面返回 false
+  function goBack() {
+    if (!stackRef.current.length) return false
+    // 自己触发的回退会多来一次 popstate，用计数抵消，避免连退两级
+    skipPopRef.current += 1
+    window.history.back()
+    popStack()
+    return true
+  }
+
+  // 网页版的浏览器返回键：同样只退一级
+  useEffect(() => {
+    function onPop() {
+      if (skipPopRef.current > 0) {
+        skipPopRef.current -= 1
+        return
+      }
+      popStack()
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
 
   // 安卓硬件返回键：逐级返回，只有主界面才交给系统进后台
   useEffect(() => {
@@ -138,6 +162,7 @@ export default function App() {
     if (lockedId) {
       const stack = stackRef.current
       stackRef.current = [...stack.slice(0, -1), { scenario: lockedId }]
+      window.history.replaceState({ scenario: lockedId }, '')
       applyRoute({ scenario: lockedId })
     } else {
       goBack()

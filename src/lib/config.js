@@ -1,8 +1,11 @@
-export const APP_VERSION = '1.0.5'
+export const APP_VERSION = '1.0.6'
 
-// App 安装包下载地址（GitHub Release）
-export const APP_DOWNLOAD_URL =
-  'https://github.com/cnliyh/woyaochumen/releases/latest/download/woyaochumen.apk'
+// 安装包直链：放在 GitHub Pages 上，国内一般不用 VPN 就能下载
+export const APP_DOWNLOAD_URL = 'https://cnliyh.github.io/woyaochumen/woyaochumen.apk'
+
+// 备用线路：jsDelivr 加速同一份文件
+export const APP_DOWNLOAD_BACKUP =
+  'https://cdn.jsdelivr.net/gh/cnliyh/woyaochumen@main/release/woyaochumen.apk'
 
 // 已授权设备码名单：仓库里的 public/licenses.json 由作者维护
 export const LICENSE_LIST_URLS = [
