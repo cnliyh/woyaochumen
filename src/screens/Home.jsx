@@ -29,10 +29,12 @@ export default function Home({ lists, onOpen, onAbout }) {
   }, [])
 
   const info = weather ? describeWeather(weather.code) : null
+  const hour = new Date().getHours()
+  const isNight = weather?.isDay === undefined ? hour < 6 || hour >= 18 : !weather.isDay
 
   return (
     <div className="screen">
-      <section className="hero">
+      <section className="hero" data-weather={info ? info.kind : 'none'} data-time={isNight ? 'night' : 'day'}>
         <div className="hero-brand">
           <div className="hero-name">我要出门</div>
           <div className="hero-sub">出门前，别忘记带东西</div>

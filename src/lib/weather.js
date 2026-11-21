@@ -58,7 +58,7 @@ export async function fetchCurrentWeather(latitude, longitude) {
   const params = new URLSearchParams({
     latitude,
     longitude,
-    current: 'temperature_2m,weather_code',
+    current: 'temperature_2m,weather_code,is_day',
     timezone: 'auto'
   })
   const res = await fetch(`${FORECAST_URL}?${params.toString()}`)
@@ -68,5 +68,5 @@ export async function fetchCurrentWeather(latitude, longitude) {
   if (!current || typeof current.temperature_2m !== 'number') {
     throw new Error('没有取到天气')
   }
-  return { temp: current.temperature_2m, code: current.weather_code ?? 2 }
+  return { temp: current.temperature_2m, code: current.weather_code ?? 2, isDay: current.is_day === 1 }
 }

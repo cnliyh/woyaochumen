@@ -88,13 +88,77 @@ p {
 
 /* ---------- 首页大色块 ---------- */
 .hero {
+  --sky-1: #0e7a5f;
+  --sky-2: #0a6350;
   position: relative;
   overflow: hidden;
   border-radius: 26px;
   padding: 22px 20px 18px;
-  background: var(--brand);
+  background: linear-gradient(155deg, var(--sky-1), var(--sky-2));
   color: #fff;
-  box-shadow: 0 12px 28px rgba(14, 122, 95, 0.22);
+  box-shadow: 0 12px 28px rgba(19, 32, 25, 0.18);
+}
+
+/* 晴天 / 多云 / 雨 / 雪 / 雾 / 雷雨：白天 */
+.hero[data-weather="sun"][data-time="day"] {
+  --sky-1: #2c97d4;
+  --sky-2: #ffc46b;
+}
+.hero[data-weather="cloud"][data-time="day"] {
+  --sky-1: #5d88a0;
+  --sky-2: #94aeb9;
+}
+.hero[data-weather="rain"][data-time="day"] {
+  --sky-1: #37627e;
+  --sky-2: #6b90a3;
+}
+.hero[data-weather="snow"][data-time="day"] {
+  --sky-1: #46758c;
+  --sky-2: #6f9aad;
+}
+.hero[data-weather="fog"][data-time="day"] {
+  --sky-1: #5b7166;
+  --sky-2: #93a69b;
+}
+.hero[data-weather="storm"][data-time="day"] {
+  --sky-1: #2f3d54;
+  --sky-2: #5a6b86;
+}
+
+/* 夜间：整体压暗 */
+.hero[data-time="night"] {
+  --sky-1: #151e2f;
+  --sky-2: #33445f;
+}
+.hero[data-weather="sun"][data-time="night"] {
+  --sky-1: #121b30;
+  --sky-2: #3a3f63;
+}
+.hero[data-weather="cloud"][data-time="night"] {
+  --sky-1: #1b2534;
+  --sky-2: #3e5063;
+}
+.hero[data-weather="rain"][data-time="night"] {
+  --sky-1: #172435;
+  --sky-2: #384c62;
+}
+.hero[data-weather="snow"][data-time="night"] {
+  --sky-1: #1b2a3a;
+  --sky-2: #41596c;
+}
+.hero[data-weather="fog"][data-time="night"] {
+  --sky-1: #1f2926;
+  --sky-2: #45544d;
+}
+.hero[data-weather="storm"][data-time="night"] {
+  --sky-1: #10161f;
+  --sky-2: #333d52;
+}
+
+/* 还没取到天气时保持品牌绿 */
+.hero[data-weather="none"] {
+  --sky-1: #0e7a5f;
+  --sky-2: #0a6350;
 }
 
 .hero::after {
@@ -111,12 +175,8 @@ p {
 .hero::before {
   content: "";
   position: absolute;
-  bottom: -84px;
-  left: -46px;
-  width: 150px;
-  height: 150px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 35%, rgba(0, 0, 0, 0.24) 100%);
 }
 
 .hero > * {
@@ -134,7 +194,7 @@ p {
 .hero-sub {
   margin-top: 4px;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.72);
+  color: rgba(255, 255, 255, 0.78);
   letter-spacing: 0.02em;
 }
 
