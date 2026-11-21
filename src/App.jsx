@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
 import { licenseStatus, markPurchased } from './lib/entitlement.js'
@@ -24,42 +24,26 @@ export default function App() {
     window.scrollTo(0, 0)
   }, [openId, aboutOpen, lockedId, payOpen])
 
-  // 安卓返回键：清单页回到首页，而不是退出应用
+  // 所有页面都走浏览器历史，安卓返回键 / 浏览器返回键都能正确回退
   useEffect(() => {
-    function onPop() {
-      setOpenId(null)
+    function onPop(event) {
+      applyRoute(event.state || {})
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  // App 壳内接管系统返回键，避免直接退出
-  const screenRef = useRef({})
-  screenRef.current = { openId, aboutOpen, lockedId, payOpen }
+  function applyRoute(route) {
+    setOpenId(route.scenario || null)
+    setAboutOpen(Boolean(route.about))
+    setLockedId(route.locked || null)
+    setPayOpen(Boolean(route.pay))
+  }
 
-  useEffect(() => {
-    if (!window.Capacitor?.isNativePlatform?.()) return
-    let remove
-    let cancelled = false
-    import('@capacitor/app').then(({ App: NativeApp }) => {
-      if (cancelled) return
-      NativeApp.addListener('backButton', ({ canGoBack }) => {
-        const screen = screenRef.current
-        if (screen.payOpen) return setPayOpen(false)
-        if (screen.lockedId) return setLockedId(null)
-        if (screen.aboutOpen) return setAboutOpen(false)
-        if (screen.openId) return window.history.back()
-        if (canGoBack) return window.history.back()
-        NativeApp.exitApp()
-      }).then((handle) => {
-        remove = () => handle.remove()
-      })
-    })
-    return () => {
-      cancelled = true
-      if (remove) remove()
-    }
-  }, [])
+  function navigate(route) {
+    window.history.pushState(route, '')
+    applyRoute(route)
+  }
 
   function addItem(scenarioId, groupId, name) {
     const value = name.trim()
@@ -96,28 +80,36 @@ export default function App() {
 
   function openScenario(id) {
     if (license.locked) {
-      setLockedId(id)
+      navigate({ locked: id })
       return
     }
-    window.history.pushState({ scenario: id }, '')
-    setOpenId(id)
+    navigate({ scenario: id })
+  }
+
+  function openAbout() {
+    navigate({ about: true })
+  }
+
+  function openPay() {
+    navigate({ pay: true })
   }
 
   function buy() {
     markPurchased('qr')
     setLicense(licenseStatus())
-    setPayOpen(false)
     if (lockedId) {
-      window.history.pushState({ scenario: lockedId }, '')
-      setOpenId(lockedId)
-      setLockedId(null)
+      const next = { scenario: lockedId }
+      window.history.replaceState(next, '')
+      applyRoute(next)
+    } else {
+      window.history.back()
     }
   }
 
   const scenario = openId ? getScenario(openId) : null
 
   if (payOpen) {
-    return <Pay onBack={() => setPayOpen(false)} onPaid={buy} />
+    return <Pay onBack={() => window.history.back()} onPaid={buy} />
   }
 
   if (scenario) {
@@ -134,24 +126,18 @@ export default function App() {
   }
 
   if (aboutOpen) {
-    return (
-      <About
-        license={license}
-        onBack={() => setAboutOpen(false)}
-        onPurchase={() => setPayOpen(true)}
-      />
-    )
+    return <About license={license} onBack={() => window.history.back()} onPurchase={openPay} />
   }
 
   if (lockedId) {
     return (
       <Lock
         scenarioName={getScenario(lockedId)?.name || '清单'}
-        onBack={() => setLockedId(null)}
-        onPurchase={() => setPayOpen(true)}
+        onBack={() => window.history.back()}
+        onPurchase={openPay}
       />
     )
   }
 
-  return <Home lists={db.lists} onOpen={openScenario} onAbout={() => setAboutOpen(true)} />
+  return <Home lists={db.lists} onOpen={openScenario} onAbout={openAbout} />
 }
