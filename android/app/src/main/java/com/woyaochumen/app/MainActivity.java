@@ -31,7 +31,8 @@ public class MainActivity extends BridgeActivity {
             return windowInsets;
         });
 
-        // 返回键：交给页面自己判断。子页面一次返回回主界面，主界面再按才退出
+        // 返回键：逐级返回上一页；只有已经在主界面时，页面才返回 exit，此时把 App 收到后台。
+        // 注意：回调永远保持启用，绝不能 setEnabled(false)，否则后续返回会直接漏到系统导致 App 被切走。
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
@@ -39,7 +40,7 @@ public class MainActivity extends BridgeActivity {
                 public void handleOnBackPressed() {
                     WebView webView = getBridge() != null ? getBridge().getWebView() : null;
                     if (webView == null) {
-                        exitApp();
+                        moveTaskToBack(true);
                         return;
                     }
                     webView.evaluateJavascript(
@@ -47,15 +48,10 @@ public class MainActivity extends BridgeActivity {
                         value -> {
                             String result = value == null ? "" : value.replace("\"", "").trim();
                             if (!"handled".equals(result)) {
-                                exitApp();
+                                moveTaskToBack(true);
                             }
                         }
                     );
-                }
-
-                private void exitApp() {
-                    setEnabled(false);
-                    getOnBackPressedDispatcher().onBackPressed();
                 }
             }
         );

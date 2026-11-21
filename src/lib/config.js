@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.4'
+export const APP_VERSION = '1.0.5'
 
 // App 安装包下载地址（GitHub Release）
 export const APP_DOWNLOAD_URL =

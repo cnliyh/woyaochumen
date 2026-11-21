@@ -17,7 +17,7 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false)
   const [lockedId, setLockedId] = useState(null)
   const [payOpen, setPayOpen] = useState(false)
-  const routeRef = useRef({})
+  const stackRef = useRef([])
 
   useEffect(() => {
     saveDb(db)
@@ -48,7 +48,6 @@ export default function App() {
     let next = route || {}
     // 管理员页只对作者设备开放，其他设备即使拿到路由也进不去
     if (next.admin && !isAdmin()) next = { ...next, admin: false }
-    routeRef.current = next
     setOpenId(next.scenario || null)
     setAboutOpen(Boolean(next.about))
     setAdminOpen(Boolean(next.admin))
@@ -56,41 +55,24 @@ export default function App() {
     setPayOpen(Boolean(next.pay))
   }
 
-  // 回主界面：直接清空当前路由，不依赖历史栈层级
-  function goHome() {
-    if (window.history.state && typeof window.history.replaceState === 'function') {
-      window.history.replaceState({}, '')
-    }
-    applyRoute({})
-  }
-
   function navigate(route) {
-    window.history.pushState(route, '')
+    stackRef.current = [...stackRef.current, route]
     applyRoute(route)
   }
 
-  // 所有页面都走浏览器历史，网页版的浏览器返回键也能正确回退
-  useEffect(() => {
-    function onPop(event) {
-      applyRoute(event.state || {})
-    }
-    window.addEventListener('popstate', onPop)
-    return () => window.removeEventListener('popstate', onPop)
-  }, [])
+  // 返回上一级：有上一页就退一页；已经在主界面返回 false
+  function goBack() {
+    const stack = stackRef.current
+    if (!stack.length) return false
+    const nextStack = stack.slice(0, -1)
+    stackRef.current = nextStack
+    applyRoute(nextStack[nextStack.length - 1] || {})
+    return true
+  }
 
-  // 安卓硬件返回键：子页面一次返回就回主界面，主界面再按才退出
+  // 安卓硬件返回键：逐级返回，只有主界面才交给系统进后台
   useEffect(() => {
-    if (!window.history.state) window.history.replaceState({}, '')
-    window.__onBackPressed = () => {
-      const route = routeRef.current || {}
-      const inSubpage = Boolean(
-        route.scenario || route.about || route.admin || route.locked || route.pay
-      )
-      if (!inSubpage) return 'exit'
-      window.history.replaceState({}, '')
-      applyRoute({})
-      return 'handled'
-    }
+    window.__onBackPressed = () => (goBack() ? 'handled' : 'exit')
     return () => {
       delete window.__onBackPressed
     }
@@ -149,23 +131,23 @@ export default function App() {
     navigate({ pay: true })
   }
 
-  // 解锁成功：原本因清单被拦下的，直接进清单；否则回主界面
+  // 解锁成功：原本因清单被拦下的，把当前页换成清单；否则退一级
   function buy(method = 'repo') {
     markPurchased(method)
     setLicense(licenseStatus())
     if (lockedId) {
-      const next = { scenario: lockedId }
-      window.history.replaceState(next, '')
-      applyRoute(next)
+      const stack = stackRef.current
+      stackRef.current = [...stack.slice(0, -1), { scenario: lockedId }]
+      applyRoute({ scenario: lockedId })
     } else {
-      goHome()
+      goBack()
     }
   }
 
   const scenario = openId ? getScenario(openId) : null
 
   if (payOpen) {
-    return <Pay onBack={goHome} onPaid={buy} />
+    return <Pay onBack={goBack} onPaid={buy} />
   }
 
   if (scenario) {
@@ -174,7 +156,7 @@ export default function App() {
         key={scenario.id}
         scenario={scenario}
         lists={db.lists[scenario.id] || {}}
-        onBack={goHome}
+        onBack={goBack}
         onAdd={(groupId, name) => addItem(scenario.id, groupId, name)}
         onRemove={(groupId, name) => removeItem(scenario.id, groupId, name)}
       />
@@ -182,14 +164,14 @@ export default function App() {
   }
 
   if (adminOpen && license.admin) {
-    return <Admin onBack={goHome} />
+    return <Admin onBack={goBack} />
   }
 
   if (aboutOpen) {
     return (
       <About
         license={license}
-        onBack={goHome}
+        onBack={goBack}
         onPurchase={openPay}
         onAdmin={openAdmin}
       />
@@ -200,7 +182,7 @@ export default function App() {
     return (
       <Lock
         scenarioName={getScenario(lockedId)?.name || '清单'}
-        onBack={goHome}
+        onBack={goBack}
         onPurchase={openPay}
       />
     )
