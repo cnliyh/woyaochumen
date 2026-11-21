@@ -1,0 +1,20 @@
+{
+  "name": "我要出门 · 出门清单",
+  "short_name": "我要出门",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F2F5EF",
+  "theme_color": "#0E7A5F",
+  "lang": "zh-CN",
+  "description": "游泳、爬山、露营、出差、健身的极简出门清单，打开看一眼就出门。",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
