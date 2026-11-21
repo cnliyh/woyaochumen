@@ -31,17 +31,29 @@ public class MainActivity extends BridgeActivity {
             return windowInsets;
         });
 
-        // 返回键：优先回退页面栈，栈底再交给系统退出
+        // 返回键：交给页面自己判断。子页面一次返回回主界面，主界面再按才退出
         getOnBackPressedDispatcher().addCallback(
             this,
             new OnBackPressedCallback(true) {
                 @Override
                 public void handleOnBackPressed() {
                     WebView webView = getBridge() != null ? getBridge().getWebView() : null;
-                    if (webView != null && webView.canGoBack()) {
-                        webView.goBack();
+                    if (webView == null) {
+                        exitApp();
                         return;
                     }
+                    webView.evaluateJavascript(
+                        "(function(){try{return (window.__onBackPressed && window.__onBackPressed()) || 'exit'}catch(e){return 'exit'}})()",
+                        value -> {
+                            String result = value == null ? "" : value.replace("\"", "").trim();
+                            if (!"handled".equals(result)) {
+                                exitApp();
+                            }
+                        }
+                    );
+                }
+
+                private void exitApp() {
                     setEnabled(false);
                     getOnBackPressedDispatcher().onBackPressed();
                 }

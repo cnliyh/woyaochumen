@@ -1,7 +1,7 @@
-import Icon from '../components/Icons.jsx'
 import { APP_DOWNLOAD_URL, APP_VERSION, PRICE, TRIAL_DAYS } from '../lib/config.js'
+import Icon from '../components/Icons.jsx'
 
-export default function About({ license, onBack, onPurchase }) {
+export default function About({ license, onBack, onPurchase, onAdmin }) {
   return (
     <div className="screen">
       <header className="topbar">
@@ -79,6 +79,16 @@ export default function About({ license, onBack, onPurchase }) {
           ) : (
             <p className="panel-text">App 正在准备上架，暂时可以先用网页版，功能一样，完全免费。</p>
           )}
+        </section>
+      )}
+
+      {license.admin && (
+        <section className="panel">
+          <h2 className="panel-title">管理员</h2>
+          <p className="fee-note">本机已识别为作者设备，可查看授权名单并放行客户设备。</p>
+          <button className="link-btn" onClick={onAdmin}>
+            进入管理员面板
+          </button>
         </section>
       )}
     </div>

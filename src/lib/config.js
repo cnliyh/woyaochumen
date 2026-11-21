@@ -1,4 +1,4 @@
-export const APP_VERSION = '1.0.2'
+export const APP_VERSION = '1.0.3'
 
 // App 安装包下载地址（GitHub Release）
 export const APP_DOWNLOAD_URL =
@@ -13,8 +13,14 @@ export const LICENSE_LIST_URLS = [
 // 付款后联系作者的方式（微信号 / 邮箱），留空则只显示「发给作者」
 export const CONTACT = ''
 
-// 解锁后筛选设备的 GitHub Issue 入口（可选）
-export const LICENSE_ISSUE_URL = 'https://github.com/cnliyh/woyaochumen/issues/new'
+// 支付宝收款链接（由收款码解析得到），点按钮可直接唤起支付宝
+export const PAY_URL = 'https://qr.alipay.com/2m611990ld77s7iqe9kje95'
+
+// 作者设备码：只有这些设备能看到管理员入口
+export const ADMIN_CODES = ['6ZJV-M5NZ']
+
+// 授权名单所在仓库
+export const GITHUB_REPO = 'cnliyh/woyaochumen'
 
 // 内购价格（元）
 export const PRICE = '6.6'

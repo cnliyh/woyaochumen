@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
 import { licenseStatus, markPurchased, verifyFromRepo } from './lib/entitlement.js'
 import Home from './screens/Home.jsx'
 import ItemList from './screens/ItemList.jsx'
 import About from './screens/About.jsx'
+import Admin from './screens/Admin.jsx'
 import Lock from './screens/Lock.jsx'
 import Pay from './screens/Pay.jsx'
 
@@ -13,8 +14,10 @@ export default function App() {
   const [license, setLicense] = useState(licenseStatus)
   const [openId, setOpenId] = useState(null)
   const [aboutOpen, setAboutOpen] = useState(false)
+  const [adminOpen, setAdminOpen] = useState(false)
   const [lockedId, setLockedId] = useState(null)
   const [payOpen, setPayOpen] = useState(false)
+  const routeRef = useRef({})
 
   useEffect(() => {
     saveDb(db)
@@ -22,7 +25,7 @@ export default function App() {
 
   useEffect(() => {
     window.scrollTo(0, 0)
-  }, [openId, aboutOpen, lockedId, payOpen])
+  }, [openId, aboutOpen, adminOpen, lockedId, payOpen])
 
   // 启动时静默核验一次：名单里已有本机设备码就直接解锁
   useEffect(() => {
@@ -41,7 +44,30 @@ export default function App() {
     }
   }, [])
 
-  // 所有页面都走浏览器历史，安卓返回键 / 浏览器返回键都能正确回退
+  function applyRoute(route) {
+    const next = route || {}
+    routeRef.current = next
+    setOpenId(next.scenario || null)
+    setAboutOpen(Boolean(next.about))
+    setAdminOpen(Boolean(next.admin))
+    setLockedId(next.locked || null)
+    setPayOpen(Boolean(next.pay))
+  }
+
+  // 回主界面：直接清空当前路由，不依赖历史栈层级
+  function goHome() {
+    if (window.history.state && typeof window.history.replaceState === 'function') {
+      window.history.replaceState({}, '')
+    }
+    applyRoute({})
+  }
+
+  function navigate(route) {
+    window.history.pushState(route, '')
+    applyRoute(route)
+  }
+
+  // 所有页面都走浏览器历史，网页版的浏览器返回键也能正确回退
   useEffect(() => {
     function onPop(event) {
       applyRoute(event.state || {})
@@ -50,17 +76,23 @@ export default function App() {
     return () => window.removeEventListener('popstate', onPop)
   }, [])
 
-  function applyRoute(route) {
-    setOpenId(route.scenario || null)
-    setAboutOpen(Boolean(route.about))
-    setLockedId(route.locked || null)
-    setPayOpen(Boolean(route.pay))
-  }
-
-  function navigate(route) {
-    window.history.pushState(route, '')
-    applyRoute(route)
-  }
+  // 安卓硬件返回键：子页面一次返回就回主界面，主界面再按才退出
+  useEffect(() => {
+    if (!window.history.state) window.history.replaceState({}, '')
+    window.__onBackPressed = () => {
+      const route = routeRef.current || {}
+      const inSubpage = Boolean(
+        route.scenario || route.about || route.admin || route.locked || route.pay
+      )
+      if (!inSubpage) return 'exit'
+      window.history.replaceState({}, '')
+      applyRoute({})
+      return 'handled'
+    }
+    return () => {
+      delete window.__onBackPressed
+    }
+  }, [])
 
   function addItem(scenarioId, groupId, name) {
     const value = name.trim()
@@ -107,10 +139,15 @@ export default function App() {
     navigate({ about: true })
   }
 
+  function openAdmin() {
+    navigate({ admin: true })
+  }
+
   function openPay() {
     navigate({ pay: true })
   }
 
+  // 解锁成功：原本因清单被拦下的，直接进清单；否则回主界面
   function buy(method = 'repo') {
     markPurchased(method)
     setLicense(licenseStatus())
@@ -119,14 +156,14 @@ export default function App() {
       window.history.replaceState(next, '')
       applyRoute(next)
     } else {
-      window.history.back()
+      goHome()
     }
   }
 
   const scenario = openId ? getScenario(openId) : null
 
   if (payOpen) {
-    return <Pay onBack={() => window.history.back()} onPaid={buy} />
+    return <Pay onBack={goHome} onPaid={buy} />
   }
 
   if (scenario) {
@@ -135,22 +172,33 @@ export default function App() {
         key={scenario.id}
         scenario={scenario}
         lists={db.lists[scenario.id] || {}}
-        onBack={() => window.history.back()}
+        onBack={goHome}
         onAdd={(groupId, name) => addItem(scenario.id, groupId, name)}
         onRemove={(groupId, name) => removeItem(scenario.id, groupId, name)}
       />
     )
   }
 
+  if (adminOpen) {
+    return <Admin onBack={goHome} />
+  }
+
   if (aboutOpen) {
-    return <About license={license} onBack={() => window.history.back()} onPurchase={openPay} />
+    return (
+      <About
+        license={license}
+        onBack={goHome}
+        onPurchase={openPay}
+        onAdmin={openAdmin}
+      />
+    )
   }
 
   if (lockedId) {
     return (
       <Lock
         scenarioName={getScenario(lockedId)?.name || '清单'}
-        onBack={() => window.history.back()}
+        onBack={goHome}
         onPurchase={openPay}
       />
     )

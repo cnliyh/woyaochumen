@@ -1,4 +1,4 @@
-import { TRIAL_DAYS, LICENSE_LIST_URLS } from './config.js'
+import { TRIAL_DAYS, LICENSE_LIST_URLS, ADMIN_CODES } from './config.js'
 
 const KEY = 'woyaochumen.license.v1'
 const DEVICE_KEY = 'woyaochumen.device.v1'
@@ -35,13 +35,14 @@ function ensureLicense() {
 
 export function licenseStatus() {
   if (!isAppShell()) {
-    return { app: false, purchased: true, daysLeft: null, locked: false }
+    return { app: false, admin: false, purchased: true, daysLeft: null, locked: false }
   }
   const license = ensureLicense()
   const used = Math.floor((Date.now() - new Date(license.start).getTime()) / DAY)
   const daysLeft = Math.max(0, TRIAL_DAYS - used)
   return {
     app: true,
+    admin: isAdmin(),
     purchased: license.purchased,
     daysLeft,
     locked: !license.purchased && daysLeft <= 0
@@ -51,6 +52,12 @@ export function licenseStatus() {
 // 扫码支付的本地记录。真正校验收款需要商户号 + 服务端回调，此处先按诚信解锁。
 export function markPurchased(method = 'qr') {
   write({ ...ensureLicense(), purchased: true, purchasedAt: new Date().toISOString(), method })
+}
+
+// 作者设备：只有白名单里的硬件才显示管理员入口
+export function isAdmin() {
+  if (!isAppShell()) return false
+  return ADMIN_CODES.includes(deviceCode())
 }
 
 // 本机设备码：首次生成后固定，用于在仓库名单里登记

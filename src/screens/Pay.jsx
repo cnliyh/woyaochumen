@@ -1,7 +1,28 @@
 import { useState } from 'react'
 import Icon from '../components/Icons.jsx'
-import { CONTACT, PRICE } from '../lib/config.js'
+import { CONTACT, PAY_URL, PRICE } from '../lib/config.js'
 import { deviceCode, verifyFromRepo } from '../lib/entitlement.js'
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch {
+    try {
+      const area = document.createElement('textarea')
+      area.value = text
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      const ok = document.execCommand('copy')
+      document.body.removeChild(area)
+      return ok
+    } catch {
+      return false
+    }
+  }
+}
 
 export default function Pay({ onBack, onPaid }) {
   const code = deviceCode()
@@ -9,13 +30,16 @@ export default function Pay({ onBack, onPaid }) {
   const [status, setStatus] = useState('idle')
 
   async function copyCode() {
-    try {
-      await navigator.clipboard.writeText(code)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 1600)
-    } catch {
-      setCopied(false)
-    }
+    const ok = await copyText(code)
+    setCopied(ok)
+    if (ok) setTimeout(() => setCopied(false), 1600)
+  }
+
+  // 复制设备码后唤起微信，粘贴发给作者
+  async function sendToAuthor() {
+    await copyText(code)
+    setCopied(true)
+    window.location.href = 'weixin://'
   }
 
   async function verify() {
@@ -46,14 +70,23 @@ export default function Pay({ onBack, onPaid }) {
         <div className="pay-sub">一次买断 · 永久使用</div>
       </section>
 
+      {PAY_URL && (
+        <section className="pay-quick">
+          <a className="pay-open" href={PAY_URL} rel="noreferrer">
+            打开支付宝付款 ¥{PRICE}
+          </a>
+          <p className="pay-quick-tip">点按钮打开支付宝收款页，不用扫码。微信暂不支持。</p>
+        </section>
+      )}
+
       <section className="pay-qr-card">
         <img className="pay-qr" src="./pay-qr.png" alt="支付宝收款二维码" />
-        <p className="pay-qr-tip">支付宝扫码支付（暂不支持微信）</p>
+        <p className="pay-qr-tip">也可以用支付宝扫这个码</p>
       </section>
 
       <ol className="pay-steps">
-        <li>用支付宝扫上面的码支付 {PRICE} 元</li>
-        <li>复制下方设备码，发给作者</li>
+        <li>支付宝付 {PRICE} 元（点按钮或扫码都行）</li>
+        <li>把下方设备码发给作者</li>
         <li>作者确认到账并登记后，点「验证解锁」</li>
       </ol>
 
@@ -65,8 +98,11 @@ export default function Pay({ onBack, onPaid }) {
             {copied ? '已复制' : '复制'}
           </button>
         </div>
+        <button className="device-send" onClick={sendToAuthor}>
+          复制并打开微信发给作者
+        </button>
         <p className="device-tip">
-          {CONTACT ? `付款后加微信 ${CONTACT}，把设备码发我` : '付款后把设备码发给作者，收到确认后再验证'}
+          {CONTACT ? `也可加微信 ${CONTACT} 发送设备码` : '到微信里粘贴设备码发给作者，作者放行后回来点验证'}
         </p>
       </section>
 
