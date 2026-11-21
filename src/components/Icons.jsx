@@ -8,8 +8,9 @@ const PATHS = {
   mountain: <path d="M3 19.5h18L14.5 5.5 9 14l-2-3-4 8.5z" />,
   tent: (
     <>
-      <path d="M12 3.5L3.5 20h17L12 3.5z" />
-      <path d="M12 9v11" />
+      <path d="M3 19.5a9 9 0 0118 0" />
+      <path d="M2 19.5h20" />
+      <path d="M8.6 19.5L12 13l3.4 6.5" />
     </>
   ),
   briefcase: (

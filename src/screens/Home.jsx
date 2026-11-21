@@ -57,8 +57,6 @@ export default function Home({ lists, onOpen, onAbout }) {
         </div>
       </section>
 
-      <div className="section-label">场景清单</div>
-
       <div className="scenario-grid">
         {SCENARIOS.map((scenario) => (
           <button
