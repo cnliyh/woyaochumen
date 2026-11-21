@@ -2,10 +2,8 @@ import { useState } from 'react'
 import Icon from '../components/Icons.jsx'
 import useLongPress from '../hooks/useLongPress.js'
 
-function ItemChip({ name, onRemove }) {
-  const press = useLongPress(() => {
-    if (window.confirm(`删除「${name}」？`)) onRemove(name)
-  })
+function ItemChip({ name, onAskRemove }) {
+  const press = useLongPress(() => onAskRemove(name))
 
   return (
     <div
@@ -21,7 +19,7 @@ function ItemChip({ name, onRemove }) {
   )
 }
 
-function GroupBlock({ group, adding, draft, onDraft, onSubmit, onCancel, onStartAdd, onRemove }) {
+function GroupBlock({ group, adding, draft, onDraft, onSubmit, onCancel, onStartAdd, onAskRemove }) {
   const press = useLongPress(onStartAdd)
   const { onPointerDown, ...rest } = press
 
@@ -43,7 +41,7 @@ function GroupBlock({ group, adding, draft, onDraft, onSubmit, onCancel, onStart
 
       <div className="item-grid">
         {group.items.map((name) => (
-          <ItemChip key={name} name={name} onRemove={(value) => onRemove(group.id, value)} />
+          <ItemChip key={name} name={name} onAskRemove={(value) => onAskRemove(group.id, value)} />
         ))}
       </div>
 
@@ -69,6 +67,7 @@ function GroupBlock({ group, adding, draft, onDraft, onSubmit, onCancel, onStart
 export default function ItemList({ scenario, lists, onBack, onAdd, onRemove }) {
   const [adding, setAdding] = useState(null)
   const [draft, setDraft] = useState('')
+  const [pending, setPending] = useState(null)
 
   const groups = scenario.groups.map((group) => ({
     ...group,
@@ -119,13 +118,33 @@ export default function ItemList({ scenario, lists, onBack, onAdd, onRemove }) {
             setAdding(null)
           }}
           onStartAdd={() => startAdd(group.id)}
-          onRemove={onRemove}
+          onAskRemove={(groupId, name) => setPending({ groupId, name })}
         />
       ))}
 
       <div className="list-fill" {...fillerPress} />
 
       <p className="hint">长按物品删除 · 长按空白添加</p>
+
+      {pending && (
+        <div className="sheet-backdrop" onPointerDown={(event) => event.stopPropagation()}>
+          <div className="sheet">
+            <p className="sheet-title">删除「{pending.name}」？</p>
+            <button
+              className="sheet-danger"
+              onClick={() => {
+                onRemove(pending.groupId, pending.name)
+                setPending(null)
+              }}
+            >
+              删除
+            </button>
+            <button className="sheet-cancel" onClick={() => setPending(null)}>
+              取消
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
