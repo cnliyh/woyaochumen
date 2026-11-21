@@ -4,3 +4,14 @@ dist
 *.local
 .vite
 .trae-html-share-packages
+
+# Android / Gradle
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/keystore.properties
+android/.idea/
+*.keystore
+*.jks
+*.apk

@@ -1,0 +1,11 @@
+{
+  "appId": "com.woyaochumen.app",
+  "appName": "我要出门",
+  "webDir": "dist",
+  "android": {
+    "allowMixedContent": false
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
