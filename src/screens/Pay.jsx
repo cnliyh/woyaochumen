@@ -1,9 +1,36 @@
 import { useState } from 'react'
 import Icon from '../components/Icons.jsx'
-import { PRICE } from '../lib/config.js'
+import { CONTACT, PRICE } from '../lib/config.js'
+import { deviceCode, verifyFromRepo } from '../lib/entitlement.js'
 
 export default function Pay({ onBack, onPaid }) {
-  const [confirming, setConfirming] = useState(false)
+  const code = deviceCode()
+  const [copied, setCopied] = useState(false)
+  const [status, setStatus] = useState('idle')
+
+  async function copyCode() {
+    try {
+      await navigator.clipboard.writeText(code)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1600)
+    } catch {
+      setCopied(false)
+    }
+  }
+
+  async function verify() {
+    setStatus('checking')
+    try {
+      const ok = await verifyFromRepo()
+      if (ok) {
+        onPaid('repo')
+        return
+      }
+      setStatus('pending')
+    } catch {
+      setStatus('error')
+    }
+  }
 
   return (
     <div className="screen pay-screen">
@@ -20,34 +47,41 @@ export default function Pay({ onBack, onPaid }) {
       </section>
 
       <section className="pay-qr-card">
-        <img className="pay-qr" src="./pay-qr.png" alt="收款二维码" />
-        <p className="pay-qr-tip">微信 / 支付宝 扫码支付</p>
+        <img className="pay-qr" src="./pay-qr.png" alt="支付宝收款二维码" />
+        <p className="pay-qr-tip">支付宝扫码支付（暂不支持微信）</p>
       </section>
 
       <ol className="pay-steps">
-        <li>打开微信或支付宝的「扫一扫」</li>
-        <li>支付 {PRICE} 元</li>
-        <li>支付完成后回到这里确认</li>
+        <li>用支付宝扫上面的码支付 {PRICE} 元</li>
+        <li>复制下方设备码，发给作者</li>
+        <li>作者确认到账并登记后，点「验证解锁」</li>
       </ol>
 
-      <button className="buy-btn" onClick={() => setConfirming(true)}>
-        我已完成支付
-      </button>
-      <p className="hint">解锁记录保存在本机 · 换设备需重新解锁</p>
-
-      {confirming && (
-        <div className="sheet-backdrop" onClick={() => setConfirming(false)}>
-          <div className="sheet" onClick={(event) => event.stopPropagation()}>
-            <p className="sheet-title">确认已完成 {PRICE} 元支付？</p>
-            <button className="sheet-primary" onClick={onPaid}>
-              已完成支付，解锁
-            </button>
-            <button className="sheet-cancel" onClick={() => setConfirming(false)}>
-              还没付
-            </button>
-          </div>
+      <section className="device-card">
+        <div className="device-label">本机设备码</div>
+        <div className="device-row">
+          <span className="device-code">{code}</span>
+          <button className="device-copy" onClick={copyCode}>
+            {copied ? '已复制' : '复制'}
+          </button>
         </div>
+        <p className="device-tip">
+          {CONTACT ? `付款后加微信 ${CONTACT}，把设备码发我` : '付款后把设备码发给作者，收到确认后再验证'}
+        </p>
+      </section>
+
+      <button className="buy-btn" onClick={verify} disabled={status === 'checking'}>
+        {status === 'checking' ? '正在核验…' : '我已完成支付，验证解锁'}
+      </button>
+
+      {status === 'pending' && (
+        <p className="hint warn">还没查到这台设备的授权。确认已付款并把设备码发给作者后再试。</p>
       )}
+      {status === 'error' && (
+        <p className="hint warn">网络不通，暂时无法核验。稍后重试，或先连上网络。</p>
+      )}
+
+      <p className="hint">解锁记录保存在本机 · 换设备需重新登记</p>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { getScenario } from './data/scenarios.js'
 import { loadDb, saveDb } from './lib/storage.js'
-import { licenseStatus, markPurchased } from './lib/entitlement.js'
+import { licenseStatus, markPurchased, verifyFromRepo } from './lib/entitlement.js'
 import Home from './screens/Home.jsx'
 import ItemList from './screens/ItemList.jsx'
 import About from './screens/About.jsx'
@@ -23,6 +23,23 @@ export default function App() {
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [openId, aboutOpen, lockedId, payOpen])
+
+  // 启动时静默核验一次：名单里已有本机设备码就直接解锁
+  useEffect(() => {
+    if (!license.app || license.purchased) return
+    let cancelled = false
+    verifyFromRepo()
+      .then((ok) => {
+        if (!cancelled && ok) {
+          markPurchased('auto')
+          setLicense(licenseStatus())
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   // 所有页面都走浏览器历史，安卓返回键 / 浏览器返回键都能正确回退
   useEffect(() => {
@@ -94,8 +111,8 @@ export default function App() {
     navigate({ pay: true })
   }
 
-  function buy() {
-    markPurchased('qr')
+  function buy(method = 'repo') {
+    markPurchased(method)
     setLicense(licenseStatus())
     if (lockedId) {
       const next = { scenario: lockedId }
